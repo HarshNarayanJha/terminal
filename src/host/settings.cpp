@@ -53,7 +53,7 @@ Settings::Settings() :
     _fUseWindowSizePixels(false),
     // window size pixels initialized below
     _fInterceptCopyPaste(0),
-    _fUseDx(false),
+    _fUseDx(true),
     _fCopyColor(false)
 {
     _dwScreenBufferSize.X = 80;

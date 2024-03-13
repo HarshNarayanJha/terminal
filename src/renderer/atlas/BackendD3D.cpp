@@ -1462,6 +1462,11 @@ BackendD3D::AtlasGlyphEntry* BackendD3D::_drawBuiltinGlyph(const RenderingPayloa
 
 void BackendD3D::_drawSoftFontGlyph(const RenderingPayload& p, const stbrp_rect& rect, u32 glyphIndex)
 {
+    if (p.s->font->softFontCellSize == til::size{})
+    {
+        return;
+    }
+
     if (!_softFontBitmap)
     {
         // Allocating such a tiny texture is very wasteful (min. texture size on GPUs

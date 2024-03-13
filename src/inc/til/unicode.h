@@ -194,4 +194,106 @@ namespace til
         std::wstring_view _value;
         bool _advance = true;
     };
+
+    // Splits a UTF16 string into UTF32 codepoints. Use it as:
+    //   for (const auto codepoint : til::utf16_32_iterator{ input }) { ... }
+    struct utf16_32_iterator
+    {
+        struct sentinel
+        {
+        };
+
+        struct iterator
+        {
+            using iterator_category = std::forward_iterator_tag;
+            using value_type = char32_t;
+            using reference = value_type&;
+            using pointer = value_type*;
+            using difference_type = std::ptrdiff_t;
+
+            explicit constexpr iterator(utf16_32_iterator& p) noexcept :
+                _iter{ p }
+            {
+            }
+
+            value_type operator*() const noexcept
+            {
+                return _iter.value();
+            }
+
+            iterator& operator++() noexcept
+            {
+                _iter._advance = true;
+                return *this;
+            }
+
+            bool operator!=(const sentinel&) const noexcept
+            {
+                return _iter.valid();
+            }
+
+        private:
+            utf16_32_iterator& _iter;
+        };
+
+        explicit constexpr utf16_32_iterator(std::wstring_view wstr) noexcept :
+            _it{ wstr.begin() }, _end{ wstr.end() }, _advance{ _it != _end }
+        {
+        }
+
+        iterator begin() noexcept
+        {
+            return iterator{ *this };
+        }
+
+        sentinel end() noexcept
+        {
+            return sentinel{};
+        }
+
+    private:
+        bool valid() const noexcept
+        {
+            return _it != _end;
+        }
+
+        void advance() noexcept
+        {
+            char32_t ch = *_it;
+            ++_it;
+
+            if (is_surrogate(ch))
+            {
+                const auto wch2 = _it != _end ? *_it : wchar_t{};
+                if (is_leading_surrogate(ch) && is_trailing_surrogate(wch2))
+                {
+                    ch = (ch & 0x3FF) << 10;
+                    ch |= wch2 & 0x3FF;
+                    ch += 0x10000;
+                    ++_it;
+                }
+                else
+                {
+                    ch = details::UNICODE_REPLACEMENT;
+                }
+            }
+
+            _value = ch;
+            _advance = false;
+        }
+
+        char32_t value() noexcept
+        {
+            if (_advance)
+            {
+                advance();
+            }
+            return _value;
+        }
+
+        std::wstring_view::iterator _it;
+        std::wstring_view::iterator _end;
+        char32_t _value = 0;
+        bool _advance = true;
+    };
 }

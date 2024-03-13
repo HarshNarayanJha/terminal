@@ -16,6 +16,7 @@ BUILDMSG
 BUILDNUMBER
 BYCOMMAND
 BYPOSITION
+CAPI
 charconv
 CLASSNOTAVAILABLE
 CLOSEAPP
@@ -65,8 +66,8 @@ GETTEXTLENGTH
 Hashtable
 HIGHCONTRASTON
 HIGHCONTRASTW
-hinternet
 HIGHQUALITYSCALE
+hinternet
 HINTERNET
 hotkeys
 href
@@ -233,13 +234,18 @@ TRACKMOUSEEVENT
 TTask
 TVal
 UChar
+ucp
+ucptrie
 UFIELD
 ULARGE
+UMutable
+umutablecptrie
 UOI
 UPDATEINIFILE
 urlmon
 userenv
 USEROBJECTFLAGS
+UVersion
 Vcpp
 Viewbox
 virtualalloc

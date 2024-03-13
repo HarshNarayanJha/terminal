@@ -570,6 +570,7 @@ ENUMLOGFONT
 ENUMLOGFONTEX
 enumranges
 EOK
+epres
 EPres
 EQU
 ERASEBKGND
@@ -593,6 +594,7 @@ EXPUNGECOMMANDHISTORY
 EXSTYLE
 EXTENDEDEDITKEY
 EXTKEY
+extpict
 EXTTEXTOUT
 facename
 FACENODE
@@ -666,6 +668,7 @@ fuzzwrapper
 fwdecl
 fwe
 fwlink
+gcb
 gci
 gcx
 gdi
@@ -1036,6 +1039,7 @@ luma
 lval
 LVB
 LVERTICAL
+LVT
 LWA
 LWIN
 lwkmvj
@@ -1123,8 +1127,8 @@ msix
 msrc
 MSVCRTD
 MTSM
-munges
 Munged
+munges
 murmurhash
 muxes
 myapplet
@@ -1888,8 +1892,8 @@ UINTs
 ul
 ulcch
 uld
-uldb
 uldash
+uldb
 ulwave
 Unadvise
 unattend
@@ -1912,8 +1916,8 @@ untextured
 UPDATEDISPLAY
 UPDOWN
 UPKEY
-UPSS
 upss
+UPSS
 uregex
 URegular
 usebackq

@@ -5,16 +5,12 @@
 #include "inc/CodepointWidthDetector.hpp"
 #include "inc/GlyphWidth.hpp"
 
-#pragma warning(suppress : 26426)
-// TODO GH 2676 - remove warning suppression and decide what to do re: singleton instance of CodepointWidthDetector
-static CodepointWidthDetector widthDetector;
-
 // Function Description:
 // - determines if the glyph represented by the string of characters should be
 //      wide or not. See CodepointWidthDetector::IsWide
 bool IsGlyphFullWidth(const std::wstring_view& glyph) noexcept
 {
-    return widthDetector.IsWide(glyph);
+    return CodepointWidthDetector::Singleton().GetWidth(glyph) == 2;
 }
 
 // Function Description:
@@ -37,7 +33,7 @@ bool IsGlyphFullWidth(const wchar_t wch) noexcept
 // - <none>
 void SetGlyphWidthFallback(std::function<bool(const std::wstring_view&)> pfnFallback) noexcept
 {
-    widthDetector.SetFallbackMethod(std::move(pfnFallback));
+    CodepointWidthDetector::Singleton().SetFallbackMethod(std::move(pfnFallback));
 }
 
 // Function Description:
@@ -48,5 +44,5 @@ void SetGlyphWidthFallback(std::function<bool(const std::wstring_view&)> pfnFall
 // - <none>
 void NotifyGlyphWidthFontChanged() noexcept
 {
-    widthDetector.NotifyFontChanged();
+    CodepointWidthDetector::Singleton().NotifyFontChanged();
 }
