@@ -182,6 +182,7 @@ charinfo
 CHARSETINFO
 chcbpat
 chh
+chonker
 chshdng
 CHT
 Cic

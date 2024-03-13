@@ -51,4 +51,16 @@ class CodepointWidthDetectorTests
         VERIFY_ARE_EQUAL(expectedAdvances, actualAdvances);
         VERIFY_ARE_EQUAL(expectedWidths, actualWidths);
     }
+
+    TEST_METHOD(DevanagariConjunctLinker)
+    {
+        static constexpr std::wstring_view text{ L"\u0915\u094D\u094D\u0924" };
+
+        auto& cwd = CodepointWidthDetector::Singleton();
+
+        int width;
+        const auto end = cwd.GraphemeNext(text, 0, &width);
+        VERIFY_ARE_EQUAL(4, end);
+        VERIFY_ARE_EQUAL(2, width);
+    }
 };
