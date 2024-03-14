@@ -308,8 +308,8 @@ void ScrollRegion(SCREEN_INFORMATION& screenInfo,
                   const til::inclusive_rect scrollRectGiven,
                   const std::optional<til::inclusive_rect> clipRectGiven,
                   const til::point destinationOriginGiven,
-                  const wchar_t fillCharGiven,
-                  const TextAttribute fillAttrsGiven)
+                  wchar_t fillCharGiven,
+                  TextAttribute fillAttrsGiven)
 {
     // ------ 1. PREP SOURCE ------
     // Set up the source viewport.
@@ -349,15 +349,12 @@ void ScrollRegion(SCREEN_INFORMATION& screenInfo,
         return;
     }
 
-    // Determine the cell we will use to fill in any revealed/uncovered space.
-    // We generally use exactly what was given to us.
-    OutputCellIterator fillData(fillCharGiven, fillAttrsGiven);
-
     // However, if the character is null and we were given a null attribute (represented as legacy 0),
     // then we'll just fill with spaces and whatever the buffer's default colors are.
     if (fillCharGiven == UNICODE_NULL && fillAttrsGiven == TextAttribute{ 0 })
     {
-        fillData = OutputCellIterator(UNICODE_SPACE, screenInfo.GetAttributes());
+        fillCharGiven = UNICODE_SPACE;
+        fillAttrsGiven = screenInfo.GetAttributes();
     }
 
     // ------ 4. PREP TARGET ------
@@ -419,7 +416,7 @@ void ScrollRegion(SCREEN_INFORMATION& screenInfo,
     for (size_t i = 0; i < remaining.size(); i++)
     {
         const auto& view = remaining.at(i);
-        screenInfo.WriteRect(fillData, view);
+        screenInfo.GetTextBuffer().FillRect(view.ToExclusive(), {&fillCharGiven, 1}, fillAttrsGiven);
 
         // If we're scrolling an area that encompasses the full buffer width,
         // then the filled rows should also have their line rendition reset.

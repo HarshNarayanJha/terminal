@@ -2,24 +2,12 @@
 // Licensed under the MIT license.
 
 #include "precomp.h"
-
-#include "ApiRoutines.h"
-
 #include "_stream.h"
-#include "stream.h"
-#include "writeData.hpp"
 
-#include "_output.h"
-#include "output.h"
 #include "dbcs.h"
 #include "handle.h"
-#include "misc.h"
-
-#include "../types/inc/convert.hpp"
-#include "../types/inc/GlyphWidth.hpp"
-#include "../types/inc/Viewport.hpp"
-
 #include "../interactivity/inc/ServiceLocator.hpp"
+#include "../types/inc/convert.hpp"
 
 #pragma hdrstop
 using namespace Microsoft::Console::Types;
@@ -125,7 +113,7 @@ void _writeCharsLegacyUnprocessed(SCREEN_INFORMATION& screenInfo, const std::wst
         auto cursorPosition = textBuffer.GetCursor().GetPosition();
 
         state.columnBegin = cursorPosition.x;
-        textBuffer.Write(cursorPosition.y, textBuffer.GetCurrentAttributes(), state);
+        textBuffer.Replace(cursorPosition.y, textBuffer.GetCurrentAttributes(), state);
         cursorPosition.x = state.columnEnd;
 
         if (wrapAtEOL && state.columnEnd >= state.columnLimit)

@@ -2,20 +2,11 @@
 // Licensed under the MIT license.
 
 #include "precomp.h"
-
 #include "screenInfo.hpp"
-#include "dbcs.h"
+
 #include "output.h"
-#include "_output.h"
-#include "misc.h"
-#include "handle.h"
-
-#include <cmath>
 #include "../interactivity/inc/ServiceLocator.hpp"
-#include "../types/inc/Viewport.hpp"
-#include "../types/inc/GlyphWidth.hpp"
-#include "../terminal/parser/OutputStateMachineEngine.hpp"
-
+#include "../types/inc/CodepointWidthDetector.hpp"
 #include "../types/inc/convert.hpp"
 
 #pragma hdrstop
@@ -533,7 +524,7 @@ void SCREEN_INFORMATION::RefreshFontWithRenderer()
                                                                        GetDesiredFont(),
                                                                        GetCurrentFont());
 
-            NotifyGlyphWidthFontChanged();
+            CodepointWidthDetector::Singleton().ClearFallbackCache();
         }
     }
 }
@@ -2289,30 +2280,6 @@ OutputCellIterator SCREEN_INFORMATION::WriteRect(const OutputCellIterator it,
     }
 
     return iter;
-}
-
-// Routine Description:
-// - This routine writes a rectangular region into the screen buffer.
-// Arguments:
-// - data - rectangular data in memory buffer
-// - location - origin point (top left corner) of where to write rectangular data
-// Return Value:
-// - <none>
-// Note:
-// - will throw exception on error.
-void SCREEN_INFORMATION::WriteRect(const OutputCellRect& data,
-                                   const til::point location)
-{
-    for (til::CoordType i = 0; i < data.Height(); i++)
-    {
-        const auto iter = data.GetRowIter(i);
-
-        til::point point;
-        point.x = location.x;
-        point.y = location.y + i;
-
-        _textBuffer->WriteLine(iter, point);
-    }
 }
 
 // Routine Description:

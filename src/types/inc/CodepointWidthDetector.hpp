@@ -10,8 +10,9 @@ struct CodepointWidthDetector
     size_t GraphemeNext(const std::wstring_view& str, size_t offset, int* width) noexcept;
     size_t GraphemePrev(const std::wstring_view& str, size_t offset, int* width) noexcept;
     int GetWidth(const std::wstring_view& glyph) noexcept;
+
     void SetFallbackMethod(std::function<bool(const std::wstring_view&)> pfnFallback) noexcept;
-    void NotifyFontChanged() noexcept;
+    void ClearFallbackCache() noexcept;
 
 private:
     __declspec(noinline) int _checkFallbackViaCache(char32_t codepoint) noexcept;

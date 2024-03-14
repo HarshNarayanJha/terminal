@@ -4,10 +4,7 @@
 #include "precomp.h"
 #include "misc.h"
 
-#include <til/unicode.h>
-
 #include "dbcs.h"
-#include "../types/inc/GlyphWidth.hpp"
 #include "../interactivity/inc/ServiceLocator.hpp"
 
 #pragma hdrstop

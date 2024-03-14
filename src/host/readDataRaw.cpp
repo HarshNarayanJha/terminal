@@ -3,10 +3,8 @@
 
 #include "precomp.h"
 #include "readDataRaw.hpp"
-#include "dbcs.h"
-#include "stream.h"
-#include "../types/inc/GlyphWidth.hpp"
 
+#include "stream.h"
 #include "../interactivity/inc/ServiceLocator.hpp"
 
 // Routine Description:

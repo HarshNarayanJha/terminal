@@ -20,7 +20,6 @@ Revision History:
 #include "screenInfo.hpp"
 #include "server.h"
 #include "../buffer/out/OutputCell.hpp"
-#include "../buffer/out/OutputCellRect.hpp"
 
 void ScreenBufferSizeChange(const til::size coordNewSize);
 

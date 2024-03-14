@@ -33,12 +33,8 @@ public:
     using pointer = OutputCellView*;
     using reference = OutputCellView&;
 
-    OutputCellIterator(const wchar_t& wch, const size_t fillLimit = 0) noexcept;
     OutputCellIterator(const TextAttribute& attr, const size_t fillLimit = 0) noexcept;
-    OutputCellIterator(const wchar_t& wch, const TextAttribute& attr, const size_t fillLimit = 0) noexcept;
     OutputCellIterator(const CHAR_INFO& charInfo, const size_t fillLimit = 0) noexcept;
-    OutputCellIterator(const std::wstring_view utf16Text) noexcept;
-    OutputCellIterator(const std::wstring_view utf16Text, const TextAttribute& attribute, const size_t fillLimit = 0) noexcept;
     OutputCellIterator(const std::span<const WORD> legacyAttributes) noexcept;
     OutputCellIterator(const std::span<const CHAR_INFO> charInfos) noexcept;
     OutputCellIterator(const std::span<const OutputCell> cells);
@@ -62,14 +58,6 @@ public:
 private:
     enum class Mode
     {
-        // Loose mode is where we're given text and attributes in a raw sort of form
-        // like while data is being inserted from an API call.
-        Loose,
-
-        // Loose mode with only text is where we're given just text and we want
-        // to use the attribute already in the buffer when writing
-        LooseTextOnly,
-
         // Fill mode is where we were given one thing and we just need to keep giving
         // that back over and over for eternity.
         Fill,
@@ -101,13 +89,8 @@ private:
 
     bool _TryMoveTrailing() noexcept;
 
-    static OutputCellView s_GenerateView(const std::wstring_view view) noexcept;
-    static OutputCellView s_GenerateView(const std::wstring_view view, const TextAttribute attr) noexcept;
-    static OutputCellView s_GenerateView(const std::wstring_view view, const TextAttribute attr, const TextAttributeBehavior behavior) noexcept;
-    static OutputCellView s_GenerateView(const wchar_t& wch) noexcept;
     static OutputCellView s_GenerateViewLegacyAttr(const WORD& legacyAttr) noexcept;
     static OutputCellView s_GenerateView(const TextAttribute& attr) noexcept;
-    static OutputCellView s_GenerateView(const wchar_t& wch, const TextAttribute& attr) noexcept;
     static OutputCellView s_GenerateView(const CHAR_INFO& charInfo) noexcept;
 
     static OutputCellView s_GenerateView(const OutputCell& cell);

@@ -91,7 +91,6 @@ backgrounding
 backported
 backstory
 barbaz
-Batang
 Bazz
 BBDM
 bbwe
@@ -199,7 +198,6 @@ cloudconsole
 cloudvault
 CLSCTX
 clsids
-CLUSTERMAP
 cmatrix
 cmder
 CMDEXT
@@ -215,7 +213,6 @@ codepages
 codepath
 coinit
 colorizing
-COLORMATRIX
 COLORREFs
 colorschemes
 colorspec
@@ -372,7 +369,6 @@ DBlob
 DColor
 DCOLORVALUE
 dcommon
-dcompile
 dcompiler
 DComposition
 dde
@@ -480,7 +476,6 @@ depersist
 deprioritized
 deserializers
 desktopwindowxamlsource
-DESTINATIONNAME
 devicecode
 Dext
 DFactory
@@ -610,7 +605,6 @@ FEEF
 fesb
 FFAF
 FFDE
-FFrom
 fgbg
 FGCOLOR
 FGHIJ
@@ -723,7 +717,6 @@ GETWAITTOKILLTIMEOUT
 GETWHEELSCROLLCHARACTERS
 GETWHEELSCROLLCHARS
 GETWHEELSCROLLLINES
-GFEh
 Gfun
 gfx
 GGI
@@ -857,6 +850,7 @@ ILD
 ime
 IMPEXP
 inbox
+incb
 inclusivity
 INCONTEXT
 INFOEX
@@ -871,7 +865,6 @@ INLINEPREFIX
 inproc
 Inputkeyinfo
 INPUTPROCESSORPROFILE
-inputrc
 Inputreadhandledata
 INSERTMODE
 INTERACTIVITYBASE
@@ -912,10 +905,6 @@ KAttrs
 kawa
 Kazu
 kazum
-kcub
-kcud
-kcuf
-kcuu
 kernelbase
 kernelbasestaging
 KEYBDINPUT
@@ -927,7 +916,6 @@ Keymapping
 keyscan
 keystate
 keyups
-khome
 KILLACTIVE
 KILLFOCUS
 kinda
@@ -1066,11 +1054,11 @@ MBUTTON
 MBUTTONDBLCLK
 MBUTTONDOWN
 MBUTTONUP
-Mbxy
 mdmerge
 MDs
 MEASUREITEM
 megamix
+Meh
 memallocator
 meme
 MENUCHAR
@@ -1226,7 +1214,6 @@ ntdll
 ntifs
 ntlpcapi
 ntm
-nto
 ntrtl
 ntstatus
 NTSYSCALLAPI
@@ -1302,7 +1289,6 @@ parentable
 parms
 PATCOPY
 pathcch
-Pathto
 PATTERNID
 pcat
 pcb
@@ -1461,7 +1447,6 @@ pwsz
 pythonw
 Qaabbcc
 QUERYOPEN
-QUESTIONMARK
 quickedit
 QUZ
 QWER
@@ -1494,8 +1479,6 @@ READCONSOLE
 READCONSOLEOUTPUT
 READCONSOLEOUTPUTSTRING
 READMODE
-reallocs
-reamapping
 rectread
 redef
 redefinable
@@ -1523,7 +1506,6 @@ repositorypath
 Requiresx
 rerasterize
 rescap
-Resequence
 RESETCONTENT
 resheader
 resmimetype
@@ -1546,7 +1528,7 @@ rgw
 RIGHTALIGN
 RIGHTBUTTON
 riid
-RIS
+ris
 roadmap
 robomac
 rosetta
@@ -1556,7 +1538,6 @@ RRRGGGBB
 rsas
 rtcore
 RTEXT
-RTFTo
 RTLREADING
 Rtn
 ruleset
@@ -1704,7 +1685,6 @@ srcsrv
 SRCSRVTRG
 srctool
 srect
-srv
 srvinit
 srvpipe
 ssa
@@ -1736,7 +1716,6 @@ SUA
 subcompartment
 subkeys
 SUBLANG
-subresource
 subsystemconsole
 subsystemwindows
 swapchain
@@ -1840,7 +1819,6 @@ tosign
 touchpad
 Tpp
 Tpqrst
-tracelog
 tracelogging
 traceviewpp
 trackbar
@@ -1853,6 +1831,7 @@ triaged
 triaging
 TRIANGLESTRIP
 Tribool
+triegen
 TRIMZEROHEADINGS
 trx
 tsa
@@ -1905,7 +1884,6 @@ unhosted
 UNICODETEXT
 UNICRT
 Unintense
-Uniscribe
 unittesting
 unittests
 unk
@@ -2001,7 +1979,6 @@ VTRGBTo
 vtseq
 vtterm
 vttest
-waitable
 WANSUNG
 WANTARROWS
 WANTTAB
@@ -2161,13 +2138,11 @@ XBUTTONDOWN
 XBUTTONUP
 XCast
 XCENTER
-XColors
 xcopy
 XCount
 xdy
 XEncoding
 xes
-xff
 XFG
 XFile
 XFORM
@@ -2176,7 +2151,6 @@ xinchaof
 xinxinchaof
 XManifest
 XMath
-XMFLOAT
 xorg
 XResource
 xsi

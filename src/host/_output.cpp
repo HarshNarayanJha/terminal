@@ -2,19 +2,11 @@
 // Licensed under the MIT license.
 
 #include "precomp.h"
-
 #include "_output.h"
 
-#include "dbcs.h"
 #include "handle.h"
-#include "misc.h"
-
 #include "../interactivity/inc/ServiceLocator.hpp"
-#include "../types/inc/Viewport.hpp"
 #include "../types/inc/convert.hpp"
-
-#include <algorithm>
-#include <iterator>
 
 #pragma hdrstop
 
@@ -130,9 +122,10 @@ void WriteToScreen(SCREEN_INFORMATION& screenInfo, const Viewport& region)
 
     try
     {
-        OutputCellIterator it(chars);
-        const auto finished = screenInfo.Write(it, target);
-        used = finished.GetInputDistance(it);
+        // TODO: foo
+        //OutputCellIterator it(chars);
+        //const auto finished = screenInfo.Write(it, target);
+        //used = finished.GetInputDistance(it);
     }
     CATCH_RETURN();
 
@@ -277,20 +270,23 @@ void WriteToScreen(SCREEN_INFORMATION& screenInfo, const Viewport& region)
     auto hr = S_OK;
     try
     {
-        const OutputCellIterator it(character, lengthToWrite);
-
+        // TODO: foo
+        //const OutputCellIterator it(character, lengthToWrite);
         // when writing to the buffer, specifically unset wrap if we get to the last column.
         // a fill operation should UNSET wrap in that scenario. See GH #1126 for more details.
-        const auto done = screenInfo.Write(it, startingCoordinate, false);
-        const auto cellsModifiedCoord = done.GetInputDistance(it);
+        //screenInfo.GetTextBuffer().FillRect({startingCoordinate.x, startingCoordinate.y, startingCoordinate.x + lengthToWrite, startingCoordinate.y}, {&character, 1}, );
 
-        cellsModified = cellsModifiedCoord;
+
+        //const auto done = screenInfo.Write(it, startingCoordinate, false);
+        //const auto cellsModifiedCoord = done.GetInputDistance(it);
+        //
+        //cellsModified = cellsModifiedCoord;
 
         // Notify accessibility
         if (screenInfo.HasAccessibilityEventing())
         {
             auto endingCoordinate = startingCoordinate;
-            bufferSize.MoveInBounds(cellsModifiedCoord, endingCoordinate);
+            //bufferSize.MoveInBounds(cellsModifiedCoord, endingCoordinate);
             screenInfo.NotifyAccessibilityEventing(startingCoordinate.x, startingCoordinate.y, endingCoordinate.x, endingCoordinate.y);
         }
 

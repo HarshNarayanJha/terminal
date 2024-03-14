@@ -2,16 +2,12 @@
 // Licensed under the MIT license.
 
 #include "precomp.h"
-
 #include "conimeinfo.h"
 
 #include <til/unicode.h>
 
 #include "conareainfo.h"
-#include "_output.h"
-#include "dbcs.h"
 #include "../interactivity/inc/ServiceLocator.hpp"
-#include "../types/inc/GlyphWidth.hpp"
 
 // Attributes flags:
 #define COMMON_LVB_GRID_SINGLEFLAG 0x2000 // DBCS: Grid attribute: use for ime cursor.
@@ -254,7 +250,7 @@ std::vector<OutputCell> ConsoleImeInfo::s_ConvertToCells(const std::wstring_view
         // right down the middle of the character.
         // Otherwise it's one column and we'll push it in with the default empty DbcsAttribute.
         DbcsAttribute dbcsAttr = DbcsAttribute::Single;
-        if (IsGlyphFullWidth(glyph))
+        // TODO: if (IsGlyphFullWidth(glyph))
         {
             auto leftHalfAttr = drawingAttr;
             auto rightHalfAttr = drawingAttr;
@@ -277,10 +273,10 @@ std::vector<OutputCell> ConsoleImeInfo::s_ConvertToCells(const std::wstring_view
             }
             cells.emplace_back(glyph, dbcsAttr, rightHalfAttr);
         }
-        else
-        {
-            cells.emplace_back(glyph, dbcsAttr, drawingAttr);
-        }
+        //else
+        //{
+        //    cells.emplace_back(glyph, dbcsAttr, drawingAttr);
+        //}
     }
 
     return cells;

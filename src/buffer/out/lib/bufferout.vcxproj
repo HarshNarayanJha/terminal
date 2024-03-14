@@ -14,7 +14,6 @@
     <ClCompile Include="..\cursor.cpp" />
     <ClCompile Include="..\OutputCell.cpp" />
     <ClCompile Include="..\OutputCellIterator.cpp" />
-    <ClCompile Include="..\OutputCellRect.cpp" />
     <ClCompile Include="..\OutputCellView.cpp" />
     <ClCompile Include="..\Row.cpp" />
     <ClCompile Include="..\search.cpp" />
@@ -35,7 +34,6 @@
     <ClInclude Include="..\LineRendition.hpp" />
     <ClInclude Include="..\OutputCell.hpp" />
     <ClInclude Include="..\OutputCellIterator.hpp" />
-    <ClInclude Include="..\OutputCellRect.hpp" />
     <ClInclude Include="..\OutputCellView.hpp" />
     <ClInclude Include="..\Row.hpp" />
     <ClInclude Include="..\search.h" />

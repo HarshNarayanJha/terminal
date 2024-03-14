@@ -23,7 +23,6 @@ Revision History:
 #include "settings.hpp"
 #include "outputStream.hpp"
 
-#include "../buffer/out/OutputCellRect.hpp"
 #include "../buffer/out/TextAttribute.hpp"
 #include "../buffer/out/textBuffer.hpp"
 #include "../buffer/out/textBufferCellIterator.hpp"
@@ -144,9 +143,6 @@ public:
 
     OutputCellIterator WriteRect(const OutputCellIterator it,
                                  const Microsoft::Console::Types::Viewport viewport);
-
-    void WriteRect(const OutputCellRect& data,
-                   const til::point location);
 
     void ClearTextData();
 

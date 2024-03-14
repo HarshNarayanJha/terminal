@@ -2,22 +2,13 @@
 // Licensed under the MIT license.
 
 #include "precomp.h"
-
 #include "directio.h"
 
-#include "_output.h"
 #include "output.h"
-#include "input.h"
 #include "dbcs.h"
 #include "handle.h"
 #include "misc.h"
 #include "readDataDirect.hpp"
-#include "ApiRoutines.h"
-
-#include "../types/inc/convert.hpp"
-#include "../types/inc/GlyphWidth.hpp"
-#include "../types/inc/viewport.hpp"
-
 #include "../interactivity/inc/ServiceLocator.hpp"
 
 #pragma hdrstop
@@ -430,7 +421,7 @@ CATCH_RETURN();
             WI_ClearAllFlags(candidate.Attributes, COMMON_LVB_SBCSDBCS);
 
             // If the glyph we're given is full width, it needs to take two cells.
-            if (IsGlyphFullWidth(candidate.Char.UnicodeChar))
+            // TODO: if (IsGlyphFullWidth(candidate.Char.UnicodeChar))
             {
                 // If we're not on the final cell of the row...
                 if (j < size.width - 1)

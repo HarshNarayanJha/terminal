@@ -30,7 +30,6 @@ PRECOMPILED_INCLUDE     = ..\precomp.h
 SOURCES= \
     ..\CodepointWidthDetector.cpp \
     ..\ColorFix.cpp \
-    ..\GlyphWidth.cpp \
     ..\Viewport.cpp \
     ..\convert.cpp \
     ..\colorTable.cpp \

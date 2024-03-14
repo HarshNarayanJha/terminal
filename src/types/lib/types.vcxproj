@@ -15,7 +15,6 @@
     <ClCompile Include="..\ColorFix.cpp" />
     <ClCompile Include="..\convert.cpp" />
     <ClCompile Include="..\colorTable.cpp" />
-    <ClCompile Include="..\GlyphWidth.cpp" />
     <ClCompile Include="..\ScreenInfoUiaProviderBase.cpp" />
     <ClCompile Include="..\sgrStack.cpp" />
     <ClCompile Include="..\ThemeUtils.cpp" />
@@ -35,7 +34,6 @@
     <ClInclude Include="..\inc\ColorFix.hpp" />
     <ClInclude Include="..\inc\convert.hpp" />
     <ClInclude Include="..\inc\colorTable.hpp" />
-    <ClInclude Include="..\inc\GlyphWidth.hpp" />
     <ClInclude Include="..\inc\IInputEvent.hpp" />
     <ClInclude Include="..\inc\sgrStack.hpp" />
     <ClInclude Include="..\inc\ThemeUtils.h" />
