@@ -1,130 +1,11 @@
 import datetime
 import io
+import math
 import sys
 import urllib.request
 import zipfile
-from ctypes import *
 from enum import Enum
 from xml.etree import ElementTree
-
-
-class UCPTrieType(Enum):
-    UCPTRIE_TYPE_ANY = -1,
-    UCPTRIE_TYPE_FAST = 0
-    UCPTRIE_TYPE_SMALL = 1
-
-
-class UCPTrieValueWidth(Enum):
-    UCPTRIE_VALUE_BITS_ANY = -1,
-    UCPTRIE_VALUE_BITS_16 = 0
-    UCPTRIE_VALUE_BITS_32 = 1
-    UCPTRIE_VALUE_BITS_8 = 2
-
-
-U_MAX_VERSION_LENGTH = 4
-U_MAX_VERSION_STRING_LENGTH = 20
-
-icu = cdll.icu
-
-# U_CAPI const char * U_EXPORT2
-# u_errorName(UErrorCode code);
-icu.u_errorName.restype = c_char_p
-icu.u_errorName.argtypes = [c_int]
-
-
-def check_error(error: c_int):
-    if error.value > 0:
-        name = icu.u_errorName(error)
-        raise RuntimeError(f"failed with {name.decode()} ({error.value})")
-
-
-# U_CAPI void U_EXPORT2
-# u_getVersion(UVersionInfo versionArray);
-icu.u_getVersion.restype = None
-icu.u_getVersion.argtypes = [c_void_p]
-# U_CAPI void U_EXPORT2
-# u_versionToString(const UVersionInfo versionArray, char *versionString);
-icu.u_versionToString.restype = None
-icu.u_versionToString.argtypes = [c_void_p, c_char_p]
-
-
-def u_getVersion():
-    info = (c_uint8 * U_MAX_VERSION_LENGTH)()
-    icu.u_getVersion(info)
-    str = (c_char * U_MAX_VERSION_STRING_LENGTH)()
-    icu.u_versionToString(info, str)
-    return str.value.decode()
-
-
-# U_CAPI UMutableCPTrie * U_EXPORT2
-# umutablecptrie_open(uint32_t initialValue, uint32_t errorValue, UErrorCode *pErrorCode);
-icu.umutablecptrie_open.restype = c_void_p
-icu.umutablecptrie_open.argtypes = [c_uint32, c_uint32, c_void_p]
-
-
-def umutablecptrie_open(initial_value: int, error_value: int) -> c_void_p:
-    error = c_int()
-    trie = icu.umutablecptrie_open(initial_value, error_value, byref(error))
-    check_error(error)
-    return trie
-
-
-# U_CAPI void U_EXPORT2
-# umutablecptrie_set(UMutableCPTrie *trie, UChar32 c, uint32_t value, UErrorCode *pErrorCode);
-icu.umutablecptrie_set.restype = None
-icu.umutablecptrie_set.argtypes = [c_void_p, c_uint32, c_uint32, c_void_p]
-
-
-def umutablecptrie_set(mutable_trie: c_void_p, c: int, value: int):
-    error = c_int()
-    icu.umutablecptrie_set(mutable_trie, c, value, byref(error))
-    check_error(error)
-
-
-# U_CAPI void U_EXPORT2
-# umutablecptrie_setRange(UMutableCPTrie *trie, UChar32 start, UChar32 end, uint32_t value, UErrorCode *pErrorCode);
-icu.umutablecptrie_setRange.restype = None
-icu.umutablecptrie_setRange.argtypes = [c_void_p, c_uint32, c_uint32, c_uint32, c_void_p]
-
-
-def umutablecptrie_setRange(mutable_trie: c_void_p, start: int, end: int, value: int):
-    error = c_int()
-    icu.umutablecptrie_setRange(mutable_trie, start, end, value, byref(error))
-    check_error(error)
-
-
-# U_CAPI UCPTrie * U_EXPORT2
-# umutablecptrie_buildImmutable(UMutableCPTrie *trie, UCPTrieType type, UCPTrieValueWidth valueWidth, UErrorCode *pErrorCode);
-icu.umutablecptrie_buildImmutable.restype = c_void_p
-icu.umutablecptrie_buildImmutable.argtypes = [c_void_p, c_int, c_int, c_void_p]
-
-
-def umutablecptrie_buildImmutable(mutable_trie: c_void_p, typ: UCPTrieType, width: UCPTrieValueWidth) -> c_void_p:
-    error = c_int()
-    trie = icu.umutablecptrie_buildImmutable(mutable_trie, typ.value, width.value, byref(error))
-    check_error(error)
-    return trie
-
-
-# U_CAPI int32_t U_EXPORT2
-# ucptrie_toBinary(const UCPTrie *trie, void *data, int32_t capacity, UErrorCode *pErrorCode);
-icu.ucptrie_toBinary.restype = c_int32
-icu.ucptrie_toBinary.argtypes = [c_void_p, c_void_p, c_int32, c_void_p]
-
-
-def ucptrie_toBinary(trie: c_void_p) -> Array[c_ubyte]:
-    error = c_int()
-    expected_size = icu.ucptrie_toBinary(trie, c_void_p(), 0, byref(error))
-
-    data = (c_ubyte * expected_size)()
-    error = c_int()
-    actual_size = icu.ucptrie_toBinary(trie, data, expected_size, byref(error))
-    check_error(error)
-
-    if actual_size != expected_size:
-        raise RuntimeError("apparently ucptrie_toBinary(nullptr, 0) only returns an estimate -> fix me")
-
-    return data
 
 
 class ClusterBreak(Enum):
@@ -142,6 +23,10 @@ class ClusterBreak(Enum):
     CONJUNCT_LINKER = 11
     EXTENDED_PICTOGRAPHIC = 12
 
+    @staticmethod
+    def serialize(indent: int):
+        return "\n".join(f"{' ' * indent}CB_{kv.name} = {kv.value}," for kv in ClusterBreak)
+
 
 class CharacterWidth(Enum):
     ZeroWidth = 0
@@ -157,15 +42,53 @@ CHARACTER_WIDTH_SHIFT = 6
 CHARACTER_WIDTH_MASK = 3
 
 
+def chunked(lst: list, n: int):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
 def build_trie_value(cb: ClusterBreak, width: CharacterWidth) -> int:
     assert cb.value <= CLUSTER_BREAK_MASK
     assert width.value <= CHARACTER_WIDTH_MASK
     return cb.value << CLUSTER_BREAK_SHIFT | width.value << CHARACTER_WIDTH_SHIFT
 
 
-def chunked(lst, n):
-    for i in range(0, len(lst), n):
-        yield lst[i:i + n]
+def set_range_inclusive(lst: list, beg: int, end: int, value: any):
+    for i in range(beg, end + 1):
+        lst[i] = value
+
+
+def fill_range(lst: list, value: any):
+    for i in range(len(lst)):
+        lst[i] = value
+
+
+def compact(lst: list, n: int) -> (list, list):
+    cache = {}
+    offsets = []
+    data = []
+    for chunk in chunked(lst, n):
+        key = ",".join(map(str, chunk))
+        if key not in cache:
+            cache[key] = len(data)
+            data.extend(chunk)
+        offsets.append(cache[key])
+    return offsets, data
+
+
+def list_value_size(lst: list):
+    return math.ceil(math.log2(max(lst) + 1) / 8)
+
+
+def format_hex_table(lst: list, byte_size: int, indent: int, width: int):
+    f = f"0x{{:0{2 * byte_size}x}}"
+    s = ""
+    for chunk in chunked(lst, width):
+        if len(s) != 0:
+            s += ",\n"
+        s += " " * indent
+        s += ", ".join(f.format(c) for c in chunk)
+    return s
 
 
 def main():
@@ -179,21 +102,99 @@ def main():
         case 2:
             source = sys.argv[1]
         case _:
-            print("CodepointWidthDetector_triegen.py <path to ucd.nounihan.grouped.xml> <path to unicode_width_overrides.xml>")
+            print("CodepointWidthDetector_triegen.py <path to ucd.nounihan.grouped.xml>")
             exit(1)
 
     root = ElementTree.parse(source).getroot()
-    ns = {"ns": "http://www.unicode.org/ns/2003/ucd/1.0"}
-    initial_value = build_trie_value(ClusterBreak.OTHER, CharacterWidth.Narrow)
-    error_value = build_trie_value(ClusterBreak.OTHER, CharacterWidth.Ambiguous)
-    mutable_trie = umutablecptrie_open(initial_value, error_value)
+    values = parse_ucd(root)
 
-    for group in root.findall("./ns:repertoire/ns:group", ns):
+    stage2_block_size = 4
+    stage3_block_size = 4
+    stage4_block_size = 4
+
+    stage1_shift = stage2_block_size + stage3_block_size + stage4_block_size
+    stage2_shift = stage3_block_size + stage4_block_size
+    stage3_shift = stage4_block_size
+
+    stage2_mask = 2 ** stage2_block_size - 1
+    stage3_mask = 2 ** stage3_block_size - 1
+    stage4_mask = 2 ** stage4_block_size - 1
+
+    stage4_offs, stage4_data = compact(values, 2 ** stage4_block_size)
+    stage3_offs, stage3_data = compact(stage4_offs, 2 ** stage3_block_size)
+    stage1_data, stage2_data = compact(stage3_offs, 2 ** stage2_block_size)
+
+    stage1_size = list_value_size(stage1_data)
+    stage2_size = list_value_size(stage2_data)
+    stage3_size = list_value_size(stage3_data)
+    stage4_size = list_value_size(stage4_data)
+
+    # Sanity test
+    for cp, expected in enumerate(values):
+        s1 = stage1_data[cp >> stage1_shift]
+        s2 = stage2_data[s1 + ((cp >> stage2_shift) & stage2_mask)]
+        s3 = stage3_data[s2 + ((cp >> stage3_shift) & stage3_mask)]
+        s4 = stage4_data[s3 + (cp & stage4_mask)]
+        assert s4 == expected
+
+    timestamp = datetime.datetime.utcnow().isoformat(timespec='seconds')
+    ucd_version = root.find("./ns:description", {"ns": "http://www.unicode.org/ns/2003/ucd/1.0"}).text
+    total_size = (stage1_size * len(stage1_data) +
+                  stage2_size * len(stage2_data) +
+                  stage3_size * len(stage3_data) +
+                  stage4_size * len(stage4_data) +
+                  len(ClusterBreak) ** 2)
+
+    join_rules = "\n".join("    " + " ".join(f"{b:d}," for b in lead) for lead in build_join_rules())
+
+    print(f"""// Generated by CodepointWidthDetector_triegen.py
+// on {timestamp}Z from {ucd_version}
+// {total_size} bytes
+// clang-format off
+static constexpr uint{8 * stage1_size}_t s_stage1[] = {{
+{format_hex_table(stage1_data, stage1_size, 4, 16)}
+}};
+static constexpr uint{8 * stage2_size}_t s_stage2[] = {{
+{format_hex_table(stage2_data, stage2_size, 4, 2 ** stage2_block_size)}
+}};
+static constexpr uint{8 * stage3_size}_t s_stage3[] = {{
+{format_hex_table(stage3_data, stage3_size, 4, 2 ** stage3_block_size)}
+}};
+static constexpr uint{8 * stage4_size}_t s_stage4[] = {{
+{format_hex_table(stage4_data, stage4_size, 4, 2 ** stage4_block_size)}
+}};
+static constexpr uint8_t s_joinRules[{len(ClusterBreak)}][{len(ClusterBreak)}] = {{
+{join_rules}
+}};
+[[msvc::forceinline]] constexpr uint{8 * stage4_size}_t ucdLookup(const char32_t cp) noexcept
+{{
+    const auto s1 = s_stage1[cp >> {stage1_shift}];
+    const auto s2 = s_stage2[s1 + ((cp >> {stage2_shift}) & {stage2_mask})];
+    const auto s3 = s_stage3[s2 + ((cp >> {stage3_shift}) & {stage3_mask})];
+    const auto s4 = s_stage4[s3 + (cp & {stage4_mask})];
+    return s4;
+}}
+[[msvc::forceinline]] constexpr uint8_t ucdGraphemeJoins(const uint8_t lead, const uint8_t trail) noexcept
+{{
+    const auto l = (lead >> {CLUSTER_BREAK_SHIFT}) & {CLUSTER_BREAK_MASK};
+    const auto t = (trail >> {CLUSTER_BREAK_SHIFT}) & {CLUSTER_BREAK_MASK};
+    return s_joinRules[l][t];
+}}
+[[msvc::forceinline]] constexpr int ucdToCharacterWidth(const uint8_t val) noexcept
+{{
+    return (val >> {CHARACTER_WIDTH_SHIFT}) & {CHARACTER_WIDTH_MASK};
+}}
+// clang-format on""")
+
+
+def parse_ucd(root: ElementTree):
+    initial_value = build_trie_value(ClusterBreak.OTHER, CharacterWidth.Narrow)
+    values = [initial_value] * 1114112
+
+    for group in root.findall("./ns:repertoire/ns:group", {"ns": "http://www.unicode.org/ns/2003/ucd/1.0"}):
         group_gc = group.get("gc")  # general category
         group_gcb = group.get("GCB")  # grapheme cluster break
         group_incb = group.get("InCB")  # indic conjunct break
-        group_emoji = group.get("Emoji")  # emoji
-        group_epres = group.get("EPres")  # emoji presentation
         group_extpict = group.get("ExtPict")  # extended pictographic
         group_ea = group.get("ea")  # east-asian (width)
 
@@ -201,13 +202,8 @@ def main():
             char_gc = char.get("gc") or group_gc
             char_gcb = char.get("GCB") or group_gcb
             char_incb = char.get("InCB") or group_incb
-            char_emoji = char.get("Emoji") or group_emoji
-            char_epres = char.get("EPres") or group_epres
             char_extpict = char.get("ExtPict") or group_extpict
             char_ea = char.get("ea") or group_ea
-            cb = ClusterBreak.OTHER
-            width = CharacterWidth.Narrow
-            cp = char.get("cp")  # codepoint
 
             match char_gcb:
                 case "XX":  # Anything else
@@ -250,23 +246,23 @@ def main():
                 assert cb == ClusterBreak.EXTEND
                 cb = ClusterBreak.CONJUNCT_LINKER
 
-            if char_gc.startswith("M"):
-                # Mc: Mark, spacing combining
-                # Me: Mark, enclosing
-                # Mn: Mark, non-spacing
+            match char_ea:
+                case "N" | "Na" | "H":  # neutral, narrow, half-width
+                    width = CharacterWidth.Narrow
+                case "F" | "W":  # full-width, wide
+                    width = CharacterWidth.Wide
+                case "A":  # ambiguous
+                    width = CharacterWidth.Ambiguous
+                case _:
+                    raise RuntimeError(f"unrecognized ea: {char_ea}")
+
+            # There's no "ea" attribute for "zero width" so we need to do that ourselves. This matches:
+            #   Mc: Mark, spacing combining
+            #   Me: Mark, enclosing
+            #   Mn: Mark, non-spacing
+            #   Cf: Control, format
+            if char_gc.startswith("M") or char_gc == "Cf":
                 width = CharacterWidth.ZeroWidth
-            elif char_emoji == "Y" and char_epres == "Y":
-                width = CharacterWidth.Wide
-            else:
-                match char_ea:
-                    case "N" | "Na" | "H":  # neutral, narrow, half-width
-                        width = CharacterWidth.Narrow
-                    case "F" | "W":  # full-width, wide
-                        width = CharacterWidth.Wide
-                    case "A":  # ambiguous
-                        width = CharacterWidth.Ambiguous
-                    case _:
-                        raise RuntimeError(f"unrecognized ea: {char_ea}")
 
             value = build_trie_value(cb, width)
             if value == initial_value:
@@ -275,49 +271,110 @@ def main():
             cp = char.get("cp")  # codepoint
             if cp is not None:
                 cp = int(cp, 16)
-                umutablecptrie_set(mutable_trie, cp, value)
+                values[cp] = value
+                set_range_inclusive(values, cp, cp, value)
             else:
                 cp_first = int(char.get("first-cp"), 16)
                 cp_last = int(char.get("last-cp"), 16)
-                umutablecptrie_setRange(mutable_trie, cp_first, cp_last, value)
+                set_range_inclusive(values, cp_first, cp_last, value)
 
     # For the following ranges to be narrow, because we're a terminal:
     # box-drawing and block elements require 1-cell alignment
-    umutablecptrie_setRange(mutable_trie, 0x2500, 0x259F, 1)
+    set_range_inclusive(values, 0x2500, 0x259F, build_trie_value(ClusterBreak.OTHER, CharacterWidth.Narrow))
     # hexagrams are historically narrow
-    umutablecptrie_setRange(mutable_trie, 0x4DC0, 0x4DFF, 1)
+    set_range_inclusive(values, 0x4DC0, 0x4DFF, build_trie_value(ClusterBreak.OTHER, CharacterWidth.Narrow))
     # narrow combining ligatures (split into left/right halves, which take 2 columns together)
-    umutablecptrie_setRange(mutable_trie, 0xFE20, 0xFE2F, 1)
+    set_range_inclusive(values, 0xFE20, 0xFE2F, build_trie_value(ClusterBreak.OTHER, CharacterWidth.Narrow))
 
-    trie_type = UCPTrieType.UCPTRIE_TYPE_FAST
-    trie_width = UCPTrieValueWidth.UCPTRIE_VALUE_BITS_8
-    trie = umutablecptrie_buildImmutable(mutable_trie, trie_type, trie_width)
-    data = ucptrie_toBinary(trie)
+    return values
 
-    timestamp = datetime.datetime.utcnow().isoformat(timespec='seconds')
-    ucd_version = root.find("./ns:description", ns).text
-    icu_version = u_getVersion()
-    # This generates a C string literal because on contemporary IDEs
-    # and compilers it lags less and compiles faster respectively.
-    string = ''.join('\\x{:02x}'.format(c) for c in data)
 
-    print("// Generated by CodepointWidthDetector_triegen.py")
-    print(f"// on {timestamp}Z from {ucd_version}")
-    print(f"// with ICU {icu_version}, {trie_type.name}, {trie_width.name}")
-    print(f"// {len(data)} bytes")
-    print("// clang-format off")
-    print("enum ClusterBreak {")
-    for kv in ClusterBreak:
-        print(f"    CB_{kv.name} = {kv.value},")
-    print(f"    CB_COUNT = {len(ClusterBreak)},")
-    print("};")
-    print(f"#define INTO_CLUSTER_BREAK(x) (ClusterBreak)((x >> {CLUSTER_BREAK_SHIFT}) & {CLUSTER_BREAK_MASK})")
-    print(f"#define INTO_CHARACTER_WIDTH(x) ((x >> {CHARACTER_WIDTH_SHIFT}) & {CHARACTER_WIDTH_MASK})")
-    print("static constexpr uint8_t s_ucpTrieData[] =")
-    for chunk in chunked(string, 256):
-        print(f"    \"{chunk}\"")
-    print(";")
-    print("// clang-format on")
+def build_join_rules():
+    # UAX #29 states:
+    # > Note: Testing two adjacent characters is insufficient for determining a boundary.
+    #
+    # I completely agree, but I really hate it. So this code trades off correctness for simplicity
+    # by using a simple lookup table anyway. Under most circumstances users won't notice,
+    # because as far as I can see this only behaves different for degenerate ("invalid") Unicode.
+    # It reduces our code complexity significantly and is way *way* faster.
+    #
+    # This is a great reference for the resulting table:
+    #   https://www.unicode.org/Public/UCD/latest/ucd/auxiliary/GraphemeBreakTest.html
+
+    # NOTE: We build the table in reverse, because rules with lower numbers take priority.
+    # (This is primarily relevant for GB9b vs. GB4.)
+
+    # Otherwise, break everywhere.
+    # GB999: Any ÷ Any
+    rules = [[False] * len(ClusterBreak) for _ in range(len(ClusterBreak))]
+
+    # Do not break within emoji flag sequences. That is, do not break between regional indicator
+    # (RI) symbols if there is an odd number of RI characters before the break point.
+    # GB13: [^RI] (RI RI)* RI × RI
+    # GB12: sot (RI RI)* RI × RI
+    #
+    # We cheat here by not checking that the number of RIs is even. Meh!
+    rules[ClusterBreak.REGIONAL_INDICATOR.value][ClusterBreak.REGIONAL_INDICATOR.value] = True
+
+    # Do not break within emoji modifier sequences or emoji zwj sequences.
+    # GB11: \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
+    #
+    # We cheat here by not checking that the ZWJ is preceded by an ExtPic. Meh!
+    rules[ClusterBreak.ZERO_WIDTH_JOINER.value][ClusterBreak.EXTENDED_PICTOGRAPHIC.value] = True
+
+    # Do not break within certain combinations with Indic_Conjunct_Break (InCB)=Linker.
+    # GB9c: \p{InCB=Consonant} [\p{InCB=Extend}\p{InCB=Linker}]* \p{InCB=Linker} [\p{InCB=Extend}\p{InCB=Linker}]* × \p{InCB=Consonant}
+    #
+    # I'm sure GB9c is great for these languages, but honestly the definition is complete whack.
+    # Just look at that chonker! This isn't a "cheat" like the others above, this is a reinvention:
+    # We treat it as having both ClusterBreak.PREPEND and ClusterBreak.EXTEND properties.
+    fill_range(rules[ClusterBreak.CONJUNCT_LINKER.value], True)
+    for lead in rules:
+        lead[ClusterBreak.CONJUNCT_LINKER.value] = True
+
+    # Do not break before SpacingMarks, or after Prepend characters.
+    # GB9b: Prepend ×
+    fill_range(rules[ClusterBreak.PREPEND.value], True)
+
+    # Do not break before SpacingMarks, or after Prepend characters.
+    # GB9a: × SpacingMark
+    # Do not break before extending characters or ZWJ.
+    # GB9: × (Extend | ZWJ)
+    for lead in rules:
+        # CodepointWidthDetector_triegen.py sets SpacingMarks to ClusterBreak.EXTEND as well,
+        # since they're entirely identical to GB9's Extend.
+        lead[ClusterBreak.EXTEND.value] = True
+        lead[ClusterBreak.ZERO_WIDTH_JOINER.value] = True
+
+    # Do not break Hangul syllable sequences.
+    # GB8: (LVT | T) x T
+    rules[ClusterBreak.HANGUL_LVT.value][ClusterBreak.HANGUL_T.value] = True
+    rules[ClusterBreak.HANGUL_T.value][ClusterBreak.HANGUL_T.value] = True
+    # GB7: (LV | V) x (V | T)
+    rules[ClusterBreak.HANGUL_LV.value][ClusterBreak.HANGUL_T.value] = True
+    rules[ClusterBreak.HANGUL_LV.value][ClusterBreak.HANGUL_V.value] = True
+    rules[ClusterBreak.HANGUL_V.value][ClusterBreak.HANGUL_V.value] = True
+    rules[ClusterBreak.HANGUL_V.value][ClusterBreak.HANGUL_T.value] = True
+    # GB6: L x (L | V | LV | LVT)
+    rules[ClusterBreak.HANGUL_L.value][ClusterBreak.HANGUL_L.value] = True
+    rules[ClusterBreak.HANGUL_L.value][ClusterBreak.HANGUL_V.value] = True
+    rules[ClusterBreak.HANGUL_L.value][ClusterBreak.HANGUL_LV.value] = True
+    rules[ClusterBreak.HANGUL_L.value][ClusterBreak.HANGUL_LVT.value] = True
+
+    # Do not break between a CR and LF. Otherwise, break before and after controls.
+    # GB5: ÷ (Control | CR | LF)
+    for lead in rules:
+        lead[ClusterBreak.CONTROL.value] = False
+    # GB4: (Control | CR | LF) ÷
+    fill_range(rules[ClusterBreak.CONTROL.value], False)
+
+    # We ignore GB3 which demands that CR × LF do not break apart, because
+    # a) these control characters won't normally reach our text storage
+    # b) otherwise we're in a raw write mode and historically conhost stores them in separate cells
+
+    # We also ignore GB1 and GB2 which demand breaks at the start and end,
+    # because that's not part of the loops in GraphemeNext/Prev and not this table.
+    return rules
 
 
 if __name__ == '__main__':
