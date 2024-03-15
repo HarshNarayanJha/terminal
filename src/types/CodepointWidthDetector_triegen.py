@@ -23,72 +23,12 @@ class ClusterBreak(Enum):
     CONJUNCT_LINKER = 11
     EXTENDED_PICTOGRAPHIC = 12
 
-    @staticmethod
-    def serialize(indent: int):
-        return "\n".join(f"{' ' * indent}CB_{kv.name} = {kv.value}," for kv in ClusterBreak)
-
 
 class CharacterWidth(Enum):
     ZeroWidth = 0
     Narrow = 1
     Wide = 2
     Ambiguous = 3
-
-
-CLUSTER_BREAK_SHIFT = 0
-CLUSTER_BREAK_MASK = 15
-
-CHARACTER_WIDTH_SHIFT = 6
-CHARACTER_WIDTH_MASK = 3
-
-
-def chunked(lst: list, n: int):
-    for i in range(0, len(lst), n):
-        yield lst[i:i + n]
-
-
-def build_trie_value(cb: ClusterBreak, width: CharacterWidth) -> int:
-    assert cb.value <= CLUSTER_BREAK_MASK
-    assert width.value <= CHARACTER_WIDTH_MASK
-    return cb.value << CLUSTER_BREAK_SHIFT | width.value << CHARACTER_WIDTH_SHIFT
-
-
-def set_range_inclusive(lst: list, beg: int, end: int, value: any):
-    for i in range(beg, end + 1):
-        lst[i] = value
-
-
-def fill_range(lst: list, value: any):
-    for i in range(len(lst)):
-        lst[i] = value
-
-
-def compact(lst: list, n: int) -> (list, list):
-    cache = {}
-    offsets = []
-    data = []
-    for chunk in chunked(lst, n):
-        key = ",".join(map(str, chunk))
-        if key not in cache:
-            cache[key] = len(data)
-            data.extend(chunk)
-        offsets.append(cache[key])
-    return offsets, data
-
-
-def list_value_size(lst: list):
-    return math.ceil(math.log2(max(lst) + 1) / 8)
-
-
-def format_hex_table(lst: list, byte_size: int, indent: int, width: int):
-    f = f"0x{{:0{2 * byte_size}x}}"
-    s = ""
-    for chunk in chunked(lst, width):
-        if len(s) != 0:
-            s += ",\n"
-        s += " " * indent
-        s += ", ".join(f.format(c) for c in chunk)
-    return s
 
 
 def main():
@@ -375,6 +315,62 @@ def build_join_rules():
     # We also ignore GB1 and GB2 which demand breaks at the start and end,
     # because that's not part of the loops in GraphemeNext/Prev and not this table.
     return rules
+
+
+CLUSTER_BREAK_SHIFT = 0
+CLUSTER_BREAK_MASK = 15
+
+CHARACTER_WIDTH_SHIFT = 6
+CHARACTER_WIDTH_MASK = 3
+
+
+def build_trie_value(cb: ClusterBreak, width: CharacterWidth) -> int:
+    assert cb.value <= CLUSTER_BREAK_MASK
+    assert width.value <= CHARACTER_WIDTH_MASK
+    return cb.value << CLUSTER_BREAK_SHIFT | width.value << CHARACTER_WIDTH_SHIFT
+
+
+def chunked(lst: list, n: int):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
+def set_range_inclusive(lst: list, beg: int, end: int, value: any):
+    for i in range(beg, end + 1):
+        lst[i] = value
+
+
+def fill_range(lst: list, value: any):
+    for i in range(len(lst)):
+        lst[i] = value
+
+
+def compact(lst: list, n: int) -> (list, list):
+    cache = {}
+    offsets = []
+    data = []
+    for chunk in chunked(lst, n):
+        key = ",".join(map(str, chunk))
+        if key not in cache:
+            cache[key] = len(data)
+            data.extend(chunk)
+        offsets.append(cache[key])
+    return offsets, data
+
+
+def list_value_size(lst: list):
+    return math.ceil(math.log2(max(lst) + 1) / 8)
+
+
+def format_hex_table(lst: list, byte_size: int, indent: int, width: int):
+    f = f"0x{{:0{2 * byte_size}x}}"
+    s = ""
+    for chunk in chunked(lst, width):
+        if len(s) != 0:
+            s += ",\n"
+        s += " " * indent
+        s += ", ".join(f.format(c) for c in chunk)
+    return s
 
 
 if __name__ == '__main__':
